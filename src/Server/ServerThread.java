@@ -21,6 +21,7 @@ class ServerThread extends Thread {
 
 	private static final String SEPARATOR = "|";
 	private static final int REQ_LOGON = 1001;
+	private static final int REQ_CREATEID = 1000;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1002;
@@ -45,14 +46,15 @@ class ServerThread extends Thread {
 	public void run() {
 		try {
 			cs.list.add(new AbstractMap.SimpleEntry<ServerThread, Boolean>(this, false));
+			int r=0;
 			while ((clientdata = input.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(clientdata, SEPARATOR);
 				int command = Integer.parseInt(st.nextToken());
 				switch (command) {
 				case REQ_LOGON: {
 					String ID = st.nextToken();
-					String PASSWORD = st.nextToken();
-					BDB.logincheck(ID);
+					//String PASSWORD = st.nextToken();
+					r=BDB.logincheck("test","test");
 					allid = cs.hash.keySet();
 					allid.toArray(arrid);
 					for (int i = 0; i < arrid.length; i++) {
@@ -62,7 +64,7 @@ class ServerThread extends Thread {
 						}
 					}
 					cs.hash.put(this.toString(), this);
-					if (!check) {
+					if (!check&&r==0) {
 						cs.hash.remove(this.toString());
 						cs.hash.put(ID, this); // 해쉬 테이블에 아이디와 스레드를 저장한다
 						for (int i = 0; i < cs.list.size(); i++) {
@@ -88,6 +90,12 @@ class ServerThread extends Thread {
 					check = false;
 					break;
 
+				}
+				case REQ_CREATEID:{
+					String ID=st.nextToken();
+					String PASSWORD=st.nextToken();
+					String PHONE=st.nextToken();
+					r = BDB.createid(ID, PASSWORD, PHONE);
 				}
 				case REQ_SENDWORDS: {
 					String ID = st.nextToken();
