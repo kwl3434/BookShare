@@ -85,7 +85,7 @@ public class ClientThread extends Thread {
 				// 로그온 성공 메시지 PACKET : YES_LOGON|개설시각|ID1`ID2`ID3...
 				case YES_LOGON: {
 					logonbox.dispose();
-					ct_client.cc_tfLogon.setEditable(false);
+					/*ct_client.cc_tfLogon.setEditable(false);
 					ct_client.cc_tfStatus.setText("로그온이 성공했습니다.");
 					String date = st.nextToken(); // 대화방 개설시간
 					ct_client.cc_tfDate.setText(date);
@@ -94,7 +94,7 @@ public class ClientThread extends Thread {
 					ct_client.cc_lstMember.removeAll();
 					while (users.hasMoreTokens()) {
 						ct_client.cc_lstMember.add(users.nextToken());
-					}
+					}*/
 					break;
 				}
 
@@ -142,18 +142,19 @@ public class ClientThread extends Thread {
 				// 대화방에 참여한 사용자 리스트를 업그레이드 한다.
 				// PACKET : MDY_USERIDS|id1'id2'id3.....
 				case MDY_USERIDS: {
-					room.dr_lstMember.clear(); // 모든 ID를 삭제한다.
+					/*room.dr_lstMember.clear(); // 모든 ID를 삭제한다.
 					String ids = st.nextToken(); // 대화방 참여자 리스트
 					StringTokenizer roomusers = new StringTokenizer(ids, DELIMETER);
 					room.dr_lstMember.removeAll();
 					while (roomusers.hasMoreTokens()) {
 						room.dr_lstMember.add(roomusers.nextToken());
-					}
+					}*/
 					break;
 				}
 
 				// 수신 메시지 출력 PACKET : YES_SENDWORDS|ID|대화말
 				case YES_SENDWORDS: {
+					/*
 					String id = st.nextToken(); // 대화말 전송자의 ID를 구한다.
 					try {
 						String data = st.nextToken();
@@ -161,10 +162,11 @@ public class ClientThread extends Thread {
 					} catch (NoSuchElementException e) {
 					}
 					room.dr_tfInput.setText(""); // 대화말 입력 필드를 지운다.
+					*/
 					break;
 				}
 				case YES_WISPERWORDS: {
-					String id = st.nextToken();
+					/*String id = st.nextToken();
 					try {
 						String data = st.nextToken();
 						String rid = st.nextToken();
@@ -172,17 +174,19 @@ public class ClientThread extends Thread {
 					} catch (NoSuchElementException e) {
 					}
 					room.dr_tfInput.setText("");
+					*/
 					break;
 				}
 				case NO_WISPERWORDS: {
-					room.dr_taContents.append("자신에게는 귓속말 할수 없습니다.\n");
+					/*room.dr_taContents.append("자신에게는 귓속말 할수 없습니다.\n");
 					room.dr_tfInput.setText("");
+					*/
 					break;
 				}
 				// LOGOUT 메시지 처리
 				// PACKET : YES_LOGOUT|탈퇴자id|탈퇴자 제외 id1, id2,....
 				case YES_LOGOUT: {
-					String outid = st.nextToken();
+					/*String outid = st.nextToken();
 					ct_client.cc_tfStatus.setText(outid + "님이 로그아웃 되셨습니다.");
 					String ids = st.nextToken();
 					if (ids.compareTo(" ") == 0)
@@ -194,18 +198,21 @@ public class ClientThread extends Thread {
 							ct_client.cc_lstMember.add(users.nextToken());
 						}
 					}
+					*/
 					break;
 				}
 				case C_LOGOUT: {
+					/*
 					ct_client.cc_tfStatus.setText("로그아웃 되셨습니다.");
 					ct_client.cc_tfDate.setText("로그아웃상태");
 					ct_client.cc_tfLogon.setEditable(true);
 					ct_client.cc_lstMember.removeAll();
+					*/
 					break;
 				}
 				// 퇴실 메시지(YES_QUITROOM) 처리 PACKET : YES_QUITROOM|ids
 				case YES_QUITROOM: {
-					String ids = st.nextToken(); // 대화방 참여자 리스트
+					/*Sring ids = st.nextToken(); // 대화방 참여자 리스트
 					if (ids.compareTo(" ") == 0) {
 						room.dr_lstMember.removeAll();
 					} else {
@@ -216,6 +223,7 @@ public class ClientThread extends Thread {
 						}
 
 					}
+					*/
 					break;
 				}
 				case C_QUITROOM: {
