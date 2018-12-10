@@ -9,6 +9,7 @@ public class ServerThread extends Thread {
 	private DataInputStream st_in;
 	private DataOutputStream st_out;
 	private StringBuffer st_buffer;
+	private DBconnect DB;
 	/* 로그온된 사용자 저장 */
 	private static Hashtable<String, ServerThread> logonHash;
 	private static Vector<String> logonVector;
@@ -66,6 +67,7 @@ public class ServerThread extends Thread {
 
 	public ServerThread(Socket sock) {
 		try {
+			DB = new DBconnect();
 			st_sock = sock;
 			st_in = new DataInputStream(sock.getInputStream());
 			st_out = new DataOutputStream(sock.getOutputStream());
