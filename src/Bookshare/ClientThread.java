@@ -13,6 +13,8 @@ public class ClientThread extends Thread {
 	private StringBuffer ct_buffer; // 버퍼
 	private Thread thisThread;
 	private DisplayRoom room;
+	private BoardContent bcontent;
+	private BoardShow bshow;
 
 	private static final String SEPARATOR = "|";
 	private static final String DELIMETER = "`";
@@ -118,6 +120,12 @@ public class ClientThread extends Thread {
 					room = new DisplayRoom(this, "대화방");
 					room.pack();
 					room.show(); // 대화방 창을 출력한다.
+					bcontent = new BoardContent(this, "게시판 작성");
+					bcontent.pack();
+					bcontent.show();
+					bshow = new BoardShow(this,"게시판 보기");
+					bshow.pack();
+					bshow.show();
 					break;
 				}
 

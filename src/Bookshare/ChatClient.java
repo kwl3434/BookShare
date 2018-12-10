@@ -23,7 +23,6 @@ public class ChatClient extends Frame implements ActionListener
    public ChatClient(String str){
       super(str);
       setLayout(new BorderLayout());
-
       // 로그온, 대화방 개설 및 입장 버튼을 설정한다.
       Panel bt_panel = new Panel();
       bt_panel.setLayout(new FlowLayout());
