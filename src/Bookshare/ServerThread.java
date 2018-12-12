@@ -9,6 +9,7 @@ public class ServerThread extends Thread {
 	private DataInputStream st_in;
 	private DataOutputStream st_out;
 	private StringBuffer st_buffer;
+	private DBconnect DB;
 	/* 로그온된 사용자 저장 */
 	private static Hashtable<String, ServerThread> logonHash;
 	private static Vector<String> logonVector;
@@ -32,10 +33,13 @@ public class ServerThread extends Thread {
 	// 클라이언트로부터 전달되는 메시지 코드
 	private static final int REQ_LOGON = 1001;
 	private static final int REQ_ENTERROOM = 1011;
+	private static final int REQ_ENTERBOARD =1012;
+	private static final int REQ_ENTERMSG =1013;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
 	private static final int REQ_QUITROOM = 1041;
+	private static final int REQ_IDSEARCH = 1051;
 
 	// 클라이언트에 전송하는 메시지 코드
 	private static final int YES_LOGON = 2001;
@@ -52,6 +56,7 @@ public class ServerThread extends Thread {
 	private static final int YES_QUITROOM = 2041;
 	private static final int C_LOGOUT = 2033;
 	private static final int C_QUITROOM = 2042;
+	private static final int YES_ENTERBOARD = 2050;
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
 	private static final int MSG_SERVERFULL = 3002;
@@ -66,6 +71,7 @@ public class ServerThread extends Thread {
 
 	public ServerThread(Socket sock) {
 		try {
+			DB = new DBconnect();
 			st_sock = sock;
 			st_in = new DataInputStream(sock.getInputStream());
 			st_out = new DataOutputStream(sock.getOutputStream());
@@ -82,28 +88,29 @@ public class ServerThread extends Thread {
 				StringTokenizer st = new StringTokenizer(recvData, SEPARATOR);
 				int command = Integer.parseInt(st.nextToken());
 				switch (command) {
-
+				
 				// 로그온 시도 메시지 PACKET : REQ_LOGON|ID
 				case REQ_LOGON: {
 					int result;
 					String id = st.nextToken(); // 클라이언트의 ID를 얻는다.
 					result = addUser(id, this);
+					String pw = st.nextToken();
+					
 					st_buffer.setLength(0);
+					/*
+					 * 디비처리부분
+					 */
 					if (result == 0) { // 접속을 허용한 상태
 						st_buffer.append(YES_LOGON);
 						// YES_LOGON|개설시각|ID1`ID2`..
-						st_buffer.append(SEPARATOR);
-						starttime = new Date();
-						st_buffer.append(starttime);
-						st_buffer.append(SEPARATOR);
-						String userIDs = getUsers(); // 대화방 참여 사용자ID를 구한다
-						st_buffer.append(userIDs);
-						broadcast(st_buffer.toString(), WAITROOM);
+						send(st_buffer.toString());
+						System.out.println(id+" "+pw);
 					} else { // 접속불가 상태
 						st_buffer.append(NO_LOGON); // NO_LOGON|errCode
 						st_buffer.append(SEPARATOR);
 						st_buffer.append(result); // 접속불가 원인코드 전송
 						send(st_buffer.toString());
+						System.out.println("false");
 					}
 					break;
 				}
@@ -224,7 +231,15 @@ public class ServerThread extends Thread {
 					send(st_buffer.toString());
 					break;
 				}
-
+				//게시판 입장 전송 메세지 PACKET : YES_ENTERBOARD|게시판내용
+				case REQ_ENTERBOARD:{ 
+					st_buffer.setLength(0);
+					st_buffer.append(YES_ENTERBOARD);
+					/*
+					 * 디비접속 후 게시판 내용 읽어서 보내주기
+					 */
+					send(st_buffer.toString());
+				}
 				} // switch 종료
 
 				Thread.sleep(100);
