@@ -15,6 +15,7 @@ public class ClientThread extends Thread {
 	private DisplayRoom room;
 	private BoardContent bcontent;
 	private BoardShow bshow;
+	private BoardMain bmain;
 
 	private static final String SEPARATOR = "|";
 	private static final String DELIMETER = "`";
@@ -24,10 +25,13 @@ public class ClientThread extends Thread {
 	// 서버에 전송하는 메시지 코드
 	private static final int REQ_LOGON = 1001;
 	private static final int REQ_ENTERROOM = 1011;
+	private static final int REQ_ENTERBOARD =1012;
+	private static final int REQ_ENTERMSG =1013;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
 	private static final int REQ_QUITROOM = 1041;
+	
 
 	// 서버로부터 전송되는 메시지 코드
 	private static final int YES_LOGON = 2001;
@@ -44,6 +48,8 @@ public class ClientThread extends Thread {
 	private static final int C_LOGOUT = 2033;
 	private static final int YES_QUITROOM = 2041;
 	private static final int C_QUITROOM = 2042;
+	private static final int YES_ENTERBOARD = 2050;
+	
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -85,16 +91,11 @@ public class ClientThread extends Thread {
 				// 로그온 성공 메시지 PACKET : YES_LOGON|개설시각|ID1`ID2`ID3...
 				case YES_LOGON: {
 					logonbox.dispose();
-					/*ct_client.cc_tfLogon.setEditable(false);
-					ct_client.cc_tfStatus.setText("로그온이 성공했습니다.");
-					String date = st.nextToken(); // 대화방 개설시간
-					ct_client.cc_tfDate.setText(date);
-					String ids = st.nextToken(); // 대화방 참여자 리스트
-					StringTokenizer users = new StringTokenizer(ids, DELIMETER);
-					ct_client.cc_lstMember.removeAll();
-					while (users.hasMoreTokens()) {
-						ct_client.cc_lstMember.add(users.nextToken());
-					}*/
+					ct_client.dispose(); // 로그온 창을 지운다.
+					room = new DisplayRoom(this, "메인");
+					room.pack();
+					room.show(); // 대화방 창을 출력한다.
+					System.out.println("성공");
 					break;
 				}
 
@@ -229,7 +230,16 @@ public class ClientThread extends Thread {
 				case C_QUITROOM: {
 					room.dispose();
 					ct_client.show();
+					break;
 				}
+				case YES_ENTERBOARD:{
+					room.dispose();
+					bmain = new BoardMain(this,"게시판 메인");
+					bmain.pack();
+					bmain.show();
+					break;
+				}
+				
 				} // switch 종료
 
 				Thread.sleep(200);
@@ -251,7 +261,7 @@ public class ClientThread extends Thread {
 	};
 
 	// Logon 패킷(REQ_LOGON|ID)을 생성하고 전송한다.
-	public void requestLogon(String id) {
+	public void requestLogon(String id,String pw) {
 		try {
 			logonbox = new MessageBox(ct_client, "로그온", "서버에 로그온 중입니다.");
 			logonbox.show();
@@ -259,7 +269,10 @@ public class ClientThread extends Thread {
 			ct_buffer.append(REQ_LOGON);
 			ct_buffer.append(SEPARATOR);
 			ct_buffer.append(id);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(pw);
 			send(ct_buffer.toString()); // Logon 패킷을 전송한다.
+			System.out.println(id+" "+pw);
 		} catch (IOException e) {
 			System.out.println(e);
 		}
@@ -329,7 +342,15 @@ public class ClientThread extends Thread {
 			System.out.println(e);
 		}
 	}
-
+	public void requestEnterBoard() {
+		try {
+			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
+			ct_buffer.append(REQ_ENTERBOARD);
+			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
 	// 클라이언트에서 메시지를 전송한다.
 	private void send(String sendData) throws IOException {
 		ct_out.writeUTF(sendData);

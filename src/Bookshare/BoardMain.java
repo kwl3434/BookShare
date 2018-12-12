@@ -14,7 +14,7 @@ public class BoardMain extends Frame implements ActionListener{
 	private TextField lr_tfInput; // 글 검색 필드
 	
 
-	public static ClientThread lr_thread;
+	public static ClientThread dr_thread;
 
 	public BoardMain(ClientThread client, String title) {
 		super(title);
@@ -59,7 +59,7 @@ public class BoardMain extends Frame implements ActionListener{
 		add("Center", centerpanel);
 		add("South", southpanel);
 
-		lr_thread = client; // ClientThread 클래스와 연결한다.
+		dr_thread = client; // ClientThread 클래스와 연결한다.
 
 		// 입력 텍스트 필드에 포커스를 맞추는 메소드 추가
 

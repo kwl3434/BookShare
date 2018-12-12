@@ -39,18 +39,22 @@ public class ChatClient extends Frame implements ActionListener {
 
 		cc_btLogon = new Button("로그인");
 		center.add(cc_btLogon);
+		cc_btLogon.addActionListener(this);
 		add("Center", center);
 
 		Panel south = new Panel();
 		south.setLayout(new FlowLayout());
 		cc_btIDsearch = new Button("아이디 찾기");
+		cc_btIDsearch.addActionListener(this);
 		south.add(cc_btIDsearch);
 
 		cc_btPWsearch = new Button("비밀번호 찾기");
+		cc_btPWsearch.addActionListener(this);
 		south.add(cc_btPWsearch);
 
 		cc_btSignup = new Button("회원가입");
 		south.add(cc_btSignup);
+		cc_btSignup.addActionListener(this);
 		center.add("South", south);
 		setSize(300, 350);
 		addWindowListener(new WinListener());
@@ -67,12 +71,12 @@ public class ChatClient extends Frame implements ActionListener {
 	public void actionPerformed(ActionEvent ae) {
 		Button b = (Button) ae.getSource();
 		if (b.getLabel().equals("로그인")) {
-
 			// 로그온 처리 루틴
 			msg_logon = cc_tfID.getText(); // 로그온 ID를 읽는다.
 			msg_pw = cc_tfPW.getText();
-			if (!msg_logon.equals("") && !msg_pw.equals("")) {
-				cc_thread.requestLogon(msg_logon); // ClientThread의 메소드를 호출
+			if (msg_logon.compareTo("")!=0 && msg_pw.compareTo("")!=0) {
+				cc_thread.requestLogon(msg_logon,msg_pw); // ClientThread의 메소드를 호출
+				System.out.println(cc_tfID+" "+cc_tfPW);
 			} else {
 				MessageBox msgBox = new MessageBox(this, "로그온", "로그온 id,password를 입력하세요.");
 				msgBox.show();

@@ -13,6 +13,8 @@ public class SignupDisplay extends Frame implements ActionListener {
 	private Label head;
 	private Button success;
 
+	public static ClientThread dr_thread;
+	
 	public SignupDisplay(ClientThread client, String title) {
 		super(title);
 		setLayout(new BorderLayout());
