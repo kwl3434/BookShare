@@ -65,7 +65,7 @@ public class DBconnect {
 		else return 1;
 	}
 	
-	public int createid(String id,String pw,String phone) 
+	public int createid(String id, String pw,String phone) 
 	{
 		/*
 		 * 회원가입 쿼리
@@ -73,7 +73,6 @@ public class DBconnect {
 		 * 1 id 에러
 		 * 2 password 에러
 		 * 3 전화번호 에러
-		 * 4 이메일 에러
 		*/
 		Connection conn = null;
 		Statement state = null;
@@ -99,7 +98,57 @@ public class DBconnect {
 		if(rs>0) return 0;
 		else return 1;
 	}
-	
+	public int checksignup(String id,  String pn) {
+		Connection conn = null;
+		Statement state = null;
+		boolean idcheck = false;
+		boolean pncheck = false;
+		try {
+			Class.forName(JDBC_DRIVER);
+			conn = DriverManager.getConnection(DB_URL, USER_NAME, PASSWORD);
+			System.out.println("\n- MySQL Connection");
+			state = conn.createStatement();
+			String sql;
+			
+			sql = "SELECT * FROM user WHERE id='"+id+"'";
+			ResultSet rs=null;
+			try {
+				rs = state.executeQuery(sql);
+			}catch(SQLException sq) {
+				rs=null;
+			}
+			if(!rs.next()) idcheck= true;
+		
+			
+			sql = "SELECT * FROM user WHERE phonenumber='"+pn+"'";
+			try {
+				rs = state.executeQuery(sql);
+			}catch(SQLException sq) {
+				rs = null;
+			}
+			
+			if(!rs.next()) pncheck= true;
+			
+			rs.close();
+			state.close();
+			conn.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} /*finally {
+			try {
+				if (state != null)
+					state.close();
+			} catch (SQLException ex1) {
+				ex1.printStackTrace();
+			}
+		}*/
+		System.out.println("\n\n- MySQL Connection Close");
+		if(idcheck&&pncheck) return 0;
+		else if(!idcheck&&pncheck) return 1;
+		else if(idcheck&&!pncheck) return 2;
+		else return 3;
+	}
 	public String[] getmsg(String id) 
 	{
 		/*

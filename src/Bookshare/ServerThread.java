@@ -32,6 +32,7 @@ public class ServerThread extends Thread {
 	private static final int MDY_ROOMUSERS = 201;
 	// 클라이언트로부터 전달되는 메시지 코드
 	private static final int REQ_LOGON = 1001;
+	private static final int REQ_SIGNUP = 1002;
 	private static final int REQ_ENTERROOM = 1011;
 	private static final int REQ_ENTERBOARD =1012;
 	private static final int REQ_ENTERMSG =1013;
@@ -45,11 +46,12 @@ public class ServerThread extends Thread {
 	// 클라이언트에 전송하는 메시지 코드
 	private static final int YES_LOGON = 2001;
 	private static final int NO_LOGON = 2002;
+	private static final int YES_SIGNUP = 2003;
+	private static final int NO_SIGNUP = 2004;
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
 	private static final int MDY_USERIDS = 2013;
 	private static final int YES_ENTERMSG = 2021;
-	private static final int NO_SENDWORDS = 2022;
 	private static final int YES_WISPERWORDS = 2023;
 	private static final int NO_WISPERWORDS = 2024;
 	private static final int YES_LOGOUT = 2031;
@@ -74,7 +76,6 @@ public class ServerThread extends Thread {
 
 	public ServerThread(Socket sock) {
 		try {
-			DB = new DBconnect();
 			st_sock = sock;
 			st_in = new DataInputStream(sock.getInputStream());
 			st_out = new DataOutputStream(sock.getOutputStream());
@@ -86,6 +87,7 @@ public class ServerThread extends Thread {
 
 	public void run() {
 		try {
+			DB = new DBconnect();
 			while (true) {
 				String recvData = st_in.readUTF();
 				StringTokenizer st = new StringTokenizer(recvData, SEPARATOR);
@@ -94,16 +96,20 @@ public class ServerThread extends Thread {
 
 				// 로그온 시도 메시지 PACKET : REQ_LOGON|ID
 				case REQ_LOGON: {
-					int result;
+					int result,check;
 					String id = st.nextToken(); // 클라이언트의 ID를 얻는다.
 					result = addUser(id, this);
+					
 					String pw = st.nextToken();
 					
 					st_buffer.setLength(0);
 					/*
 					 * 디비처리부분
 					 */
-					if (result == 0) { // 접속을 허용한 상태
+					check=DB.logincheck(id, pw);
+					System.out.println(check);
+					if (result == 0 && check == 0) { // 접속을 허용한 상태
+						
 						st_buffer.append(YES_LOGON);
 						// YES_LOGON|개설시각|ID1`ID2`..
 						send(st_buffer.toString());
@@ -117,7 +123,29 @@ public class ServerThread extends Thread {
 					}
 					break;
 				}
-
+				case REQ_SIGNUP:{
+					int check;
+					String id = st.nextToken();
+					String pw = st.nextToken();
+					String pn = st.nextToken();
+					/*
+					 * 디비 Insert 부분
+					 */
+					check = DB.checksignup(id, pn);
+					if(check==0) {
+						st_buffer.setLength(0);
+						st_buffer.append(YES_SIGNUP);
+						send(st_buffer.toString());
+						DB.createid(id, pw, pn);
+					}else {
+						st_buffer.setLength(0);
+						st_buffer.append(NO_SIGNUP);
+						st_buffer.append(SEPARATOR);
+						st_buffer.append(String.valueOf(check));
+						send(st_buffer.toString());
+					}
+					break;
+				}
 				// 대화방 개설 시도 메시지 PACKET : REQ_ENTERROOM|ID
 				case REQ_ENTERROOM: {
 					st_buffer.setLength(0);

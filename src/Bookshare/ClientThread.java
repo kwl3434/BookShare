@@ -20,11 +20,11 @@ public class ClientThread extends Thread {
 
 	private static final String SEPARATOR = "|";
 	private static final String DELIMETER = "`";
-
 	// 메시지 패킷 코드 및 데이터 정의
 
 	// 서버에 전송하는 메시지 코드
 	private static final int REQ_LOGON = 1001;
+	private static final int REQ_SIGNUP = 1002;
 	private static final int REQ_ENTERROOM = 1011;
 	private static final int REQ_ENTERBOARD =1012;
 	private static final int REQ_ENTERMSG =1013;
@@ -39,6 +39,8 @@ public class ClientThread extends Thread {
 	// 서버로부터 전송되는 메시지 코드
 	private static final int YES_LOGON = 2001;
 	private static final int NO_LOGON = 2002;
+	private static final int YES_SIGNUP = 2003;
+	private static final int NO_SIGNUP = 2004;
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
 	private static final int MDY_USERIDS = 2013;
@@ -59,6 +61,7 @@ public class ClientThread extends Thread {
 	private static final int MSG_ALREADYUSER = 3001;
 	private static final int MSG_SERVERFULL = 3002;
 	private static final int MSG_CANNOTOPEN = 3011;
+	
 
 	private static MessageBox msgBox, logonbox;
 
@@ -106,19 +109,38 @@ public class ClientThread extends Thread {
 				// 로그온 실패 또는 로그온하고 대화방이 개설되지 않은 상태
 				// PACKET : NO_LOGON|errCode
 				case NO_LOGON: {
-					int errcode = Integer.parseInt(st.nextToken());
-					if (errcode == MSG_ALREADYUSER) {
-						logonbox.dispose();
-						msgBox = new MessageBox(ct_client, "로그온", "이미 다른 사용자가 있습니다.");
+					logonbox.dispose();
+					msgBox = new MessageBox(ct_client, "로그온", "옳은 ID 혹은 PW를 입력해 주세요.");
+					msgBox.show();
+					break;
+				}
+				//  PACKET : YES_SIGNUP
+				case YES_SIGNUP:{ 
+					MessageBox msgBox = new MessageBox(null, "회원가입 완료", "회원가입이 완료되었습니다.");
+					msgBox.show();
+					ct_client.SignD.dispose();
+					ct_client.pack();
+					ct_client.show();
+					break;
+				}
+				//  PACKET : NO_SIGNUP|check(1~3)
+				case NO_SIGNUP:{
+					String check = st.nextToken();
+					if(check.equals("1")) {
+						System.out.println(check);
+						MessageBox msgBox = new MessageBox(null, "ID에러", "중복된 아이디입니다.");
 						msgBox.show();
-					} else if (errcode == MSG_SERVERFULL) {
-						logonbox.dispose();
-						msgBox = new MessageBox(ct_client, "로그온", "대화방이 만원입니다.");
+					}else if(check.equals("2")) {
+						System.out.println(check);
+						MessageBox msgBox = new MessageBox(null, "휴대폰 번호에러", "중복된 휴대폰번호입니다.");
+					    msgBox.show();
+					}else {
+						MessageBox msgBox = new MessageBox(null, "ID, 휴대폰 번호에러", "중복된 ID,휴대폰번호입니다.");
 						msgBox.show();
+						System.out.println(check);
 					}
 					break;
 				}
-
 				// 대화방 개설 및 입장 성공 메시지 PACKET : YES_ENTERROOM
 				case YES_ENTERROOM: {
 					ct_client.dispose(); // 로그온 창을 지운다.
@@ -302,29 +324,6 @@ public class ClientThread extends Thread {
 		}
 	}
 
-	// EnterRoom 패킷(REQ_ENTERROOM|ID)을 생성하고 전송한다.
-	public void requestEnterRoom(String id) {
-		try {
-			ct_buffer.setLength(0); // EnterRoom 패킷을 생성한다.
-			ct_buffer.append(REQ_ENTERROOM);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(id);
-			send(ct_buffer.toString()); // EnterRoom 패킷을 전송한다.
-		} catch (IOException e) {
-			System.out.println(e);
-		}
-	}
-
-	public void requestQuitRoom() {
-		try {
-			ct_buffer.setLength(0); // EnterRoom 패킷을 생성한다.
-			ct_buffer.append(REQ_QUITROOM);
-			send(ct_buffer.toString()); // EnterRoom 패킷을 전송한다.
-		} catch (IOException e) {
-			System.out.println(e);
-		}
-	}
-
 	// SendWords 패킷(REQ_SENDWORDS|ID|대화말)을 생성하고 전송한다.
 	public void requestEnterMessage() {
 		try {
@@ -358,6 +357,21 @@ public class ClientThread extends Thread {
 		try {
 			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
 			ct_buffer.append(REQ_READBOARD);
+			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	public void requestSignup(String id, String pw, String pn) {
+		try {
+			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
+			ct_buffer.append(REQ_SIGNUP);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(id);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(pw);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(pn);
 			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
 		} catch (IOException e) {
 			System.out.println(e);

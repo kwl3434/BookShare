@@ -9,11 +9,15 @@ public class ChatClient extends Frame implements ActionListener {
 	private Button cc_btIDsearch; // id찾기
 	private Button cc_btPWsearch; // pw찾기
 	private Button cc_btSignup; // 회원가입
+	private IdSearch IdSc;
+	private PwSearch PwSc;
+	
+	protected SignupDisplay SignD;
 	protected TextField cc_tfID; // 로그온 입력 텍스트 필드
+	
 	public TextField cc_tfPW; // 로그온 개설 안내
-	IdSearch IdSc;
-	PwSearch PwSc;
-	SignupDisplay SignD;
+	
+	
 	public static ClientThread cc_thread;
 	public static ChatClient client;
 	public String msg_logon = "";
@@ -87,7 +91,6 @@ public class ChatClient extends Frame implements ActionListener {
 			IdSc = new IdSearch("아이디 찾기");
 			IdSc.show();
 			// id찾기 루틴
-
 		} else if (b.getLabel().equals("비밀번호 찾기")) {
 			PwSc = new PwSearch("비밀번호 찾기"); 
 			PwSc.show();

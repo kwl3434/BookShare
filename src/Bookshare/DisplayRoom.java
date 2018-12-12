@@ -63,6 +63,7 @@ public class DisplayRoom extends Frame implements ActionListener {
 			// 쪽지함 입장 루틴
 		}else if(b.getLabel().equals("로그아웃")) {
 			// 로그아웃 처리 루틴
+			
 		}
 	}
 }

@@ -16,7 +16,7 @@ class MessageBox extends Dialog implements ActionListener
       pack();
    }
    public void actionPerformed(ActionEvent ae){
-      setVisible(false); // OK 버튼이 눌리면 메시지 박스를 제거한다.
+      dispose(); // OK 버튼이 눌리면 메시지 박스를 제거한다.
    }
 
 }
