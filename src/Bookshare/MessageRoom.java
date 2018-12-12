@@ -3,20 +3,22 @@ package Bookshare;
 import java.awt.*;
 import java.awt.event.*;
 
-public class NoteMessageRoom extends Frame implements ActionListener {
+public class MessageRoom extends Frame implements ActionListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Button nr_Sendbtn;
-	
-	private Label nr_CurNote, nr_CurLabel, nr_Receiver, nr_Title;
-	private TextArea nr_ReveiveTitle, dr_taContents, nr_NoteContents, nr_CurrentContents; // 대화말 내용 리스트창
+	private Label nr_CurNote, nr_Receiver, nr_Title;
+	private TextArea nr_ReveiveTitle, nr_NoteContents, nr_CurrentContents; // 대화말 내용 리스트창
 	private List dr_lstMember; // 쪽지리스트
 	
+	private TextField  nr_ReceiverField, nr_TitleField; // 대화말 입력필드
 
-	private TextField dr_tfInput, nr_ReceiverField, nr_TitleField, nr_NoteField; // 대화말 입력필드
+	public static ClientThread dr_thread;
 
-	private static ClientThread dr_thread;
-
-	public NoteMessageRoom(ClientThread client, String title) {
+	public MessageRoom(ClientThread client, String title) {
 		super(title);
 		setLayout(new BorderLayout());
 
@@ -31,7 +33,7 @@ public class NoteMessageRoom extends Frame implements ActionListener {
 		centerpanel.add("North",nr_CurNote);
 		dr_lstMember = new List(20);
 		centerpanel.add("West",dr_lstMember);
-		dr_lstMember.addItemListener(null);
+//		dr_lstMember.addItemListener(null);
 		nr_ReveiveTitle = new TextArea(10,15);
 		nr_ReveiveTitle.setEditable(false);
 		centerpanel.add("Center",nr_ReveiveTitle);
@@ -48,7 +50,7 @@ public class NoteMessageRoom extends Frame implements ActionListener {
 		
 		nr_Receiver = new Label("받는사람");
 		southpanel.add("West", nr_Receiver);
-		nr_ReceiverField = new TextField(21);
+		nr_ReceiverField = new TextField(20);
 		nr_ReceiverField.setEditable(false);
 		southpanel.add("Center", nr_ReceiverField);
 		southpanel.add("South", Note);
@@ -84,7 +86,7 @@ public class NoteMessageRoom extends Frame implements ActionListener {
 
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent we) {
-			dr_thread.requestQuitRoom();
+			dr_thread.requestQuitMSG();
 		}
 	}
 

@@ -69,8 +69,7 @@ public class BoardMain extends Frame implements ActionListener{
 
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent we) {
-			// lr_thread.requestQuitRoom();
-			System.exit(0);
+			dr_thread.requestQuitBoard();
 		}
 	}
 

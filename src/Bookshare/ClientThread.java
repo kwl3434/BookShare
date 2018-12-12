@@ -16,7 +16,7 @@ public class ClientThread extends Thread {
 	private BoardContent bcontent;
 	private BoardShow bshow;
 	private BoardMain bmain;
-	private NoteMessageRoom MR; 
+	private MessageRoom MR; 
 
 	private static final String SEPARATOR = "|";
 	private static final String DELIMETER = "`";
@@ -82,6 +82,7 @@ public class ClientThread extends Thread {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void run() {
 
 		try {
@@ -97,7 +98,6 @@ public class ClientThread extends Thread {
 					logonbox.dispose();
 					ct_client.dispose(); // 로그온 창을 지운다.
 					room = new DisplayRoom(this, "메인");
-					room.pack();
 					room.show(); // 대화방 창을 출력한다.
 					System.out.println("성공");
 					break;
@@ -160,7 +160,7 @@ public class ClientThread extends Thread {
 				// 수신 메시지 출력 PACKET : YES_SENDWORDS|ID|대화말
 				case YES_ENTERMSG: {
 					room.dispose();
-					MR = new NoteMessageRoom(this,"쪽지창");
+					MR = new MessageRoom(this,"쪽지창");
 					MR.pack();
 					MR.show();
 					break;
@@ -362,6 +362,26 @@ public class ClientThread extends Thread {
 		} catch (IOException e) {
 			System.out.println(e);
 		}
+	}
+	public void requestQuitRBoard() {
+		bshow.dispose();
+		bmain.pack();
+		bmain.show();
+	}
+	public void requestQuitWBoard() {
+		bcontent.dispose();
+		bmain.pack();
+		bmain.show();
+	}
+	public void requestQuitBoard() {
+		bmain.dispose();
+		room.pack();
+		room.show();
+	}
+	public void requestQuitMSG() {
+		MR.dispose();
+		room.pack();
+		room.show();
 	}
 	// 클라이언트에서 메시지를 전송한다.
 	private void send(String sendData) throws IOException {

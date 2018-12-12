@@ -16,6 +16,11 @@ import java.util.Date;
 
 public class BoardContent extends Frame implements ActionListener{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3L;
+
 	//private Button dr_btRevise; // 수정
 	private Button dr_btUpload; // 업로드하기
 	
@@ -82,7 +87,7 @@ public class BoardContent extends Frame implements ActionListener{
 
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent we) {
-			//채워야함
+			dr_thread.requestQuitWBoard();
 		}
 	}
 

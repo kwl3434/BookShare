@@ -51,7 +51,7 @@ public class SignupDisplay extends Frame implements ActionListener {
 
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
-			System.exit(0);
+			dispose();
 		}
 	}
 

@@ -88,6 +88,7 @@ public class BoardShow extends Frame implements ActionListener{
 
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent we) {
+			dr_thread.requestQuitRBoard();
 			//채워야함
 		}
 	}
