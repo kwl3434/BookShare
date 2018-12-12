@@ -16,6 +16,7 @@ public class ClientThread extends Thread {
 	private BoardContent bcontent;
 	private BoardShow bshow;
 	private BoardMain bmain;
+	private NoteMessageRoom MR; 
 
 	private static final String SEPARATOR = "|";
 	private static final String DELIMETER = "`";
@@ -27,6 +28,8 @@ public class ClientThread extends Thread {
 	private static final int REQ_ENTERROOM = 1011;
 	private static final int REQ_ENTERBOARD =1012;
 	private static final int REQ_ENTERMSG =1013;
+	private static final int REQ_WRITEBOARD =1014;
+	private static final int REQ_READBOARD =1015;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
@@ -39,7 +42,7 @@ public class ClientThread extends Thread {
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
 	private static final int MDY_USERIDS = 2013;
-	private static final int YES_SENDWORDS = 2021;
+	private static final int YES_ENTERMSG = 2021;
 	private static final int NO_SENDWORDS = 2022;
 	private static final int YES_WISPERWORDS = 2023;
 	private static final int NO_WISPERWORDS = 2024;
@@ -49,7 +52,8 @@ public class ClientThread extends Thread {
 	private static final int YES_QUITROOM = 2041;
 	private static final int C_QUITROOM = 2042;
 	private static final int YES_ENTERBOARD = 2050;
-	
+	private static final int YES_ENTERWRITEBOARD = 2051;
+	private static final int YES_ENTERREADBOARD = 2052;
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -154,16 +158,11 @@ public class ClientThread extends Thread {
 				}
 
 				// 수신 메시지 출력 PACKET : YES_SENDWORDS|ID|대화말
-				case YES_SENDWORDS: {
-					/*
-					String id = st.nextToken(); // 대화말 전송자의 ID를 구한다.
-					try {
-						String data = st.nextToken();
-						room.dr_taContents.append(id + " : " + data + "\n");
-					} catch (NoSuchElementException e) {
-					}
-					room.dr_tfInput.setText(""); // 대화말 입력 필드를 지운다.
-					*/
+				case YES_ENTERMSG: {
+					room.dispose();
+					MR = new NoteMessageRoom(this,"쪽지창");
+					MR.pack();
+					MR.show();
 					break;
 				}
 				case YES_WISPERWORDS: {
@@ -237,6 +236,20 @@ public class ClientThread extends Thread {
 					bmain = new BoardMain(this,"게시판 메인");
 					bmain.pack();
 					bmain.show();
+					break;
+				}
+				case YES_ENTERWRITEBOARD:{
+					bmain.dispose();
+					bcontent = new BoardContent(this,"게시판 작성");
+					bcontent.pack();
+					bcontent.show();
+					break;
+				}
+				case YES_ENTERREADBOARD:{
+					bmain.dispose();
+					bshow = new BoardShow(this,"게시판 보기");
+					bshow.pack();
+					bshow.show();
 					break;
 				}
 				
@@ -313,39 +326,38 @@ public class ClientThread extends Thread {
 	}
 
 	// SendWords 패킷(REQ_SENDWORDS|ID|대화말)을 생성하고 전송한다.
-	public void requestSendWords(String words) {
+	public void requestEnterMessage() {
 		try {
 			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
-			ct_buffer.append(REQ_SENDWORDS);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(ct_client.msg_logon);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(words);
+			ct_buffer.append(REQ_ENTERMSG);
 			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
 		} catch (IOException e) {
 			System.out.println(e);
 		}
 	}
 
-	public void requestWisperSend(String words, String ID) {
+	public void requestEnterBoard() {
 		try {
-			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
-			ct_buffer.append(REQ_WISPERSEND);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(ct_client.msg_logon);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(words);
-			ct_buffer.append(SEPARATOR);
-			ct_buffer.append(ID);
-			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
+			ct_buffer.setLength(0); // enterboard 패킷을 생성한다.
+			ct_buffer.append(REQ_ENTERBOARD);
+			send(ct_buffer.toString()); // enterboard 패킷을 전송한다.
 		} catch (IOException e) {
 			System.out.println(e);
 		}
 	}
-	public void requestEnterBoard() {
+	public void requestWriteBoard() {
+		try {
+			ct_buffer.setLength(0); // enterWriteboard 패킷을 생성한다.
+			ct_buffer.append(REQ_WRITEBOARD);
+			send(ct_buffer.toString()); // enterWriteboard 패킷을 전송한다.
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	public void requestReadBoard() {
 		try {
 			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
-			ct_buffer.append(REQ_ENTERBOARD);
+			ct_buffer.append(REQ_READBOARD);
 			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
 		} catch (IOException e) {
 			System.out.println(e);

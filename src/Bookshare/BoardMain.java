@@ -79,9 +79,10 @@ public class BoardMain extends Frame implements ActionListener{
 		Button b = (Button) ae.getSource();
 		if (b.getLabel().equals("게시물 작성")) {
 			// 글 작성 처리 루틴
-
+			dr_thread.requestWriteBoard();
 		} else if (b.getLabel().equals("게시물 보기")) {
 			// 보기 처리 루틴
+			dr_thread.requestReadBoard();
 			String item = lr_writelist.getSelectedItem();
 			if(item != null) {
 				

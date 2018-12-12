@@ -35,9 +35,10 @@ public class DisplayRoom extends Frame implements ActionListener {
 		dr_thread = client; // ClientThread 클래스와 연결한다.
 
 		// 입력 텍스트 필드에 포커스를 맞추는 메소드 추가
-		setSize(300, 350);
+		
+		
 		addWindowListener(new WinListener());
-
+		setSize(300, 350);
 	}
 
 	class WinListener extends WindowAdapter {
@@ -54,6 +55,7 @@ public class DisplayRoom extends Frame implements ActionListener {
 			System.out.println("게시판");
 			dr_thread.requestEnterBoard();
 		} else if (b.getLabel().equals("쪽지함")) {
+			dr_thread.requestEnterMessage();
 			// 쪽지함 입장 루틴
 		}else if(b.getLabel().equals("로그아웃")) {
 			// 로그아웃 처리 루틴

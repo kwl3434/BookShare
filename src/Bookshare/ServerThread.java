@@ -35,6 +35,8 @@ public class ServerThread extends Thread {
 	private static final int REQ_ENTERROOM = 1011;
 	private static final int REQ_ENTERBOARD =1012;
 	private static final int REQ_ENTERMSG =1013;
+	private static final int REQ_WRITEBOARD =1014;
+	private static final int REQ_READBOARD =1015;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
@@ -46,7 +48,7 @@ public class ServerThread extends Thread {
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
 	private static final int MDY_USERIDS = 2013;
-	private static final int YES_SENDWORDS = 2021;
+	private static final int YES_ENTERMSG = 2021;
 	private static final int NO_SENDWORDS = 2022;
 	private static final int YES_WISPERWORDS = 2023;
 	private static final int NO_WISPERWORDS = 2024;
@@ -56,6 +58,8 @@ public class ServerThread extends Thread {
 	private static final int C_LOGOUT = 2033;
 	private static final int C_QUITROOM = 2042;
 	private static final int YES_ENTERBOARD = 2050;
+	private static final int YES_ENTERWRITEBOARD = 2051;
+	private static final int YES_ENTERREADBOARD = 2052;
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
 	private static final int MSG_SERVERFULL = 3002;
@@ -151,19 +155,10 @@ public class ServerThread extends Thread {
 				}
 
 				// 대화말 전송 시도 메시지 PACKET : REQ_SENDWORDS|ID|대화말
-				case REQ_SENDWORDS: {
+				case REQ_ENTERMSG: {
 					st_buffer.setLength(0);
-					st_buffer.append(YES_SENDWORDS);
-					st_buffer.append(SEPARATOR);
-					String id = st.nextToken(); // 전송한 사용자의 ID를 구한다.
-					st_buffer.append(id);
-					st_buffer.append(SEPARATOR);
-					try {
-						String data = st.nextToken(); // 대화말을 구한다.
-						st_buffer.append(data);
-					} catch (NoSuchElementException e) {
-					}
-					broadcast(st_buffer.toString(), CHATROOM); // YES_SENDWORDS 패킷 전송
+					st_buffer.append(YES_ENTERMSG);
+					send(st_buffer.toString()); // YES_SENDWORDS 패킷 전송
 					break;
 				}
 				case REQ_WISPERSEND: {
@@ -238,6 +233,25 @@ public class ServerThread extends Thread {
 					 * 디비접속 후 게시판 내용 읽어서 보내주기
 					 */
 					send(st_buffer.toString());
+					break;
+				}
+				case REQ_WRITEBOARD:{ 
+					st_buffer.setLength(0);
+					st_buffer.append(YES_ENTERWRITEBOARD);
+					/*
+					 * 디비접속 후 게시판 내용 읽어서 보내주기
+					 */
+					send(st_buffer.toString());
+					break;
+				}
+				case REQ_READBOARD:{ 
+					st_buffer.setLength(0);
+					st_buffer.append(YES_ENTERREADBOARD);
+					/*
+					 * 디비접속 후 게시판 내용 읽어서 보내주기
+					 */
+					send(st_buffer.toString());
+					break;
 				}
 				} // switch 종료
 
