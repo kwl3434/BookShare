@@ -35,7 +35,7 @@ public class ServerThread extends Thread {
 	private static final int REQ_WRITEBOARD = 1014;
 	private static final int REQ_READBOARD = 1015;
 	private static final int REQ_REMOVEBOARD =1016;
-	private static final int REQ_SENDWORDS = 1021;
+	private static final int REQ_SENDMSG = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
 	private static final int REQ_QUITROOM = 1041;
@@ -49,6 +49,7 @@ public class ServerThread extends Thread {
 	private static final int NO_ENTERROOM = 2012;
 	private static final int MDY_USERIDS = 2013;
 	private static final int YES_ENTERMSG = 2021;
+	private static final int NO_ENTERMSG = 2022;
 	private static final int YES_WISPERWORDS = 2023;
 	private static final int NO_WISPERWORDS = 2024;
 	private static final int YES_LOGOUT = 2031;
@@ -62,6 +63,8 @@ public class ServerThread extends Thread {
 	private static final int YES_READBOARD = 2062;
 	private static final int YES_REMOVEBOARD =2063;
 	private static final int NO_REMOVEBOARD =2064;
+	private static final int YES_SENDMSG = 2074;
+	private static final int NO_SENDMSG = 2075;
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -96,6 +99,7 @@ public class ServerThread extends Thread {
 				switch (command) {
 
 				// 로그온 시도 메시지 PACKET : REQ_LOGON|ID
+				
 				case REQ_LOGON: {
 					int result, check;
 					String id = st.nextToken(); // 클라이언트의 ID를 얻는다.
@@ -123,6 +127,22 @@ public class ServerThread extends Thread {
 						st_buffer.append(result); // 접속불가 원인코드 전송
 						send(st_buffer.toString());
 						System.out.println("false");
+					}
+					break;
+				}
+				case REQ_SENDMSG: {
+					String dest = st.nextToken();
+					String text = st.nextToken();
+					int result = DB.setmsg(text, st_ID,dest);
+					if(result == 0) {
+						st_buffer.setLength(0);
+						st_buffer.append(YES_SENDMSG);
+						send(st_buffer.toString());
+						
+					} else {
+						st_buffer.setLength(0);
+						st_buffer.append(NO_SENDMSG);
+						send(st_buffer.toString());
 					}
 					break;
 				}
@@ -175,12 +195,43 @@ public class ServerThread extends Thread {
 					send(st_buffer.toString()); // YES_ENTERROOM 패킷을 전송한다.
 					break;
 				}
-
-				// 대화말 전송 시도 메시지 PACKET : REQ_SENDWORDS|ID|대화말
+				
 				case REQ_ENTERMSG: {
+					String [] buffer = new String[1000];
 					st_buffer.setLength(0);
-					st_buffer.append(YES_ENTERMSG);
-					send(st_buffer.toString()); // YES_SENDWORDS 패킷 전송
+					buffer = DB.getmsg(st_ID);
+					for (int i = 0; i < buffer.length; i++) {
+						if (buffer[i].equals("")) {
+							System.out.println("hello");
+							if(i==0) {
+								st_buffer.setLength(0);
+								st_buffer.append(NO_ENTERMSG);
+								send(st_buffer.toString());
+							}
+							break;
+						} else {
+							StringTokenizer stb = new StringTokenizer(buffer[i], SEPARATOR);
+							String msg_no = stb.nextToken();
+							String text = stb.nextToken();
+							String source = stb.nextToken();
+							String dest = stb.nextToken();
+							String date = stb.nextToken();
+							st_buffer.setLength(0);
+							st_buffer.append(YES_ENTERMSG);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(msg_no);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(text);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(source);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(dest);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(date);
+							System.out.println(st_buffer.toString());
+							send(st_buffer.toString());
+						}
+					} 
 					break;
 				}
 				// LOGOUT 전송 시도 메시지

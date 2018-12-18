@@ -31,7 +31,7 @@ public class ClientThread extends Thread {
 	private static final int REQ_WRITEBOARD =1014;
 	private static final int REQ_READBOARD =1015;
 	private static final int REQ_REMOVEBOARD =1016;
-	private static final int REQ_SENDWORDS = 1021;
+	private static final int REQ_SENDMSG = 1021;
 	private static final int REQ_LOGOUT = 1031;
 	private static final int REQ_QUITROOM = 1041;
 	
@@ -44,6 +44,7 @@ public class ClientThread extends Thread {
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
 	private static final int YES_ENTERMSG = 2021;
+	private static final int NO_ENTERMSG = 2022;
 	private static final int NO_SENDWORDS = 2022;
 	private static final int YES_LOGOUT = 2031;
 	private static final int NO_LOGOUT = 2032;
@@ -55,6 +56,8 @@ public class ClientThread extends Thread {
 	private static final int YES_READBOARD = 2062;
 	private static final int YES_REMOVEBOARD =2063;
 	private static final int NO_REMOVEBOARD =2064;
+	private static final int YES_SENDMSG = 2074;
+	private static final int NO_SENDMSG = 2075;
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -90,14 +93,15 @@ public class ClientThread extends Thread {
 		room.setSize(1000,600);
 		room.pack();
 		bmain = new BoardMain(this,"게시판 메인");
-		bmain.pack();
+		bmain.setSize(800,400);
 		bshow = new BoardShow(this,"게시판 보기");
-		bshow.setSize(1000,600);
+		bshow.setSize(500,1000);
 		bshow.pack();
 		bcontent = new BoardContent(this, "게시판 작성");
 		bcontent.setSize(1000,600);
 		bcontent.pack();
-		
+		MR = new MessageRoom(this,"쪽지창");
+		MR.setSize(1000,600);
 		try {
 			Thread currThread = Thread.currentThread();
 			while (currThread == thisThread) { // 종료는 LOG_OFF에서 thisThread=null;에 의하여
@@ -173,8 +177,22 @@ public class ClientThread extends Thread {
 				}
 				// 수신 메시지 출력 PACKET : YES_SENDWORDS|ID|대화말
 				case YES_ENTERMSG: {
+					String msg_no = st.nextToken();
+					String text = st.nextToken();
+					String source = st.nextToken();
+					String dest = st.nextToken();
+					String date = st.nextToken();
+					MR.nr_lstMember.add(source);
+					MR.nr_lstTitle.add(msg_no+"|"+date+"에 도착한 메세지입니다.");
+					MR.VecText.add(text);
 					room.dispose();
-					MR = new MessageRoom(this,"쪽지창");
+					MR.show();
+					break;
+				}
+				case NO_ENTERMSG:{
+					MessageBox msgBox = new MessageBox(null, "메세지", "메세지가 없습니다.");
+					msgBox.show();
+					room.dispose();
 					MR.show();
 					break;
 				}
@@ -210,12 +228,24 @@ public class ClientThread extends Thread {
 					System.out.println(board_No+title+text+ID+date);
 					bshow.setTextArea(title, text, date);
 					bmain.dispose();
+					bshow.dest=ID;
 					bshow.b_no=Integer.parseInt(board_No);
 					bshow.show();
 					break;
 				}
 				case YES_REMOVEBOARD:{
 					MessageBox msgBox = new MessageBox(null, "게시물삭제", "게시물이 삭제되었습니다.");
+					msgBox.show();
+					break;
+				}
+				
+				case YES_SENDMSG:{
+					MessageBox msgBox = new MessageBox(null, "메세지", "성공적으로 메세지를 보냈습니다.");
+					msgBox.show();
+					break;
+				}
+				case NO_SENDMSG:{
+					MessageBox msgBox = new MessageBox(null, "메세지", "메세지 전송에 실패했습니다.");
 					msgBox.show();
 					break;
 				}
@@ -272,6 +302,8 @@ public class ClientThread extends Thread {
 		try {
 			ct_buffer.setLength(0); 
 			ct_buffer.append(REQ_ENTERMSG);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(ct_ID);
 			send(ct_buffer.toString()); 
 		} catch (IOException e) {
 			System.out.println(e);
@@ -356,17 +388,34 @@ public class ClientThread extends Thread {
 	}
 	public void requestremoveBoard(String pw, int b_no) {
 		try {
-			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
+			ct_buffer.setLength(0); 
 			ct_buffer.append(REQ_REMOVEBOARD);
 			ct_buffer.append(SEPARATOR);
 			ct_buffer.append(pw);
 			ct_buffer.append(SEPARATOR);
 			new String();
 			ct_buffer.append(String.valueOf(b_no));
-			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
+			send(ct_buffer.toString()); 
 		} catch (IOException e) {
 			System.out.println(e);
 		}
+	}
+	public void requestSendMessage(String dest, String text) {
+		try {
+			ct_buffer.setLength(0); 
+			ct_buffer.append(REQ_SENDMSG);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(dest);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(text);
+			//ct_buffer.append(String.valueOf(b_no));
+			send(ct_buffer.toString()); 
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	public void requestsetDest(String dest) {
+		MR.SETrcvtext(dest);
 	}
 	public String getID() {
 		return ct_ID;

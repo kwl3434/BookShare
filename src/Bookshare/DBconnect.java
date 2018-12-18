@@ -114,7 +114,12 @@ public class DBconnect {
 			
 			sql = "SELECT * FROM user WHERE id='"+id+"'";
 			ResultSet rs=null;
-			
+			try {
+				rs = state.executeQuery(sql);
+			}catch(SQLException sq) {
+				rs = null;
+			}
+			if(!rs.next()) idcheck = true;
 			sql = "SELECT * FROM user WHERE phonenumber='"+pn+"'";
 			try {
 				rs = state.executeQuery(sql);
@@ -161,20 +166,22 @@ public class DBconnect {
 			state = conn.createStatement();
 
 			String sql;
-			sql = "SELECT msg_no,text,source,date FROM msg where id='"+id+"'";
+			sql = "SELECT msg_no,text,source,dest,date FROM msg where dest='"+id+"' ORDER BY msg_no DESC";
 			ResultSet rs = state.executeQuery(sql);
 			int i=0;
 			while (rs.next()) {
 				String msg_No = rs.getString("msg_no");
 				String text = rs.getString("text");
 				String source = rs.getString("source");
+				String dest = rs.getString("dest");
 				String date = rs.getString("date");
 				System.out.println(text);
 				System.out.println(source);
 				System.out.println(date);
-				buffer[i]=msg_No+SEPARATOR+text+SEPARATOR+source+SEPARATOR+date;
+				buffer[i]=msg_No+SEPARATOR+text+SEPARATOR+source+SEPARATOR+dest+SEPARATOR+date;
 				i++;
 			}
+			buffer[i]="";
 			rs.close();
 			state.close();
 			conn.close();
@@ -185,7 +192,7 @@ public class DBconnect {
 		System.out.println("\n\n- MySQL Connection Close");
 		return buffer;
 	}
-	public int setmsg(String msg,String source, String dest, String date) 
+	public int setmsg(String msg,String source, String dest) 
 	{
 		/*
 		 * 받은메세지 디비저장 쿼리
@@ -204,8 +211,8 @@ public class DBconnect {
 			state = conn.createStatement();
 
 			String sql;
-			sql = "INSERT INTO msg(msg_no,text,source,dest,date)";
-			sql+= "VALUES('"+msg_No+"','"+msg+"','"+source+"','"+dest+"',"+date+"')";
+			sql = "INSERT INTO msg(text,source,dest)";
+			sql+= "VALUES('"+msg+"','"+source+"','"+dest+"')";
 			rs = state.executeUpdate(sql);
 			
 			state.close();

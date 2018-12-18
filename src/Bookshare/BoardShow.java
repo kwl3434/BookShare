@@ -28,11 +28,12 @@ public class BoardShow extends Frame implements ActionListener{
 	private TextField boardtime;
 	public static ClientThread dr_thread;
 	public int b_no=0;
+	public String dest;
 	
 	public BoardShow(ClientThread client, String title) {
 		super(title);
 		setLayout(new BorderLayout());
-
+		dest= new String();
 		// 대화방에서 사용하는 컴포넌트를 배치한다.
 		Panel southpanel = new Panel();
 		southpanel.setLayout(new FlowLayout());
@@ -100,6 +101,9 @@ public class BoardShow extends Frame implements ActionListener{
 			
 		}else if(b.getLabel().equals("글쓴이에게 쪽지하기")) {
 			//채워야함
+			dr_thread.requestQuitRBoard();
+			dr_thread.requestEnterMessage();
+			dr_thread.requestsetDest(dest);
 		}
 	}
 	public void setTextArea(String title, String data,String date) {
