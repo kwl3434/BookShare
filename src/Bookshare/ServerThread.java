@@ -2,6 +2,7 @@ package Bookshare;
 
 import java.io.*;
 import java.net.*;
+import java.sql.Timestamp;
 import java.util.*;
 
 public class ServerThread extends Thread {
@@ -34,10 +35,10 @@ public class ServerThread extends Thread {
 	private static final int REQ_LOGON = 1001;
 	private static final int REQ_SIGNUP = 1002;
 	private static final int REQ_ENTERROOM = 1011;
-	private static final int REQ_ENTERBOARD =1012;
-	private static final int REQ_ENTERMSG =1013;
-	private static final int REQ_WRITEBOARD =1014;
-	private static final int REQ_READBOARD =1015;
+	private static final int REQ_ENTERBOARD = 1012;
+	private static final int REQ_ENTERMSG = 1013;
+	private static final int REQ_WRITEBOARD = 1014;
+	private static final int REQ_READBOARD = 1015;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
@@ -62,6 +63,9 @@ public class ServerThread extends Thread {
 	private static final int YES_ENTERBOARD = 2050;
 	private static final int YES_ENTERWRITEBOARD = 2051;
 	private static final int YES_ENTERREADBOARD = 2052;
+	private static final int YES_WRITEBOARD = 2060;
+	private static final int NO_WRITEBOARD = 2061;
+
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
 	private static final int MSG_SERVERFULL = 3002;
@@ -96,24 +100,26 @@ public class ServerThread extends Thread {
 
 				// 로그온 시도 메시지 PACKET : REQ_LOGON|ID
 				case REQ_LOGON: {
-					int result,check;
+					int result, check;
 					String id = st.nextToken(); // 클라이언트의 ID를 얻는다.
 					result = addUser(id, this);
-					
+
 					String pw = st.nextToken();
-					
+
 					st_buffer.setLength(0);
 					/*
 					 * 디비처리부분
 					 */
-					check=DB.logincheck(id, pw);
+					check = DB.logincheck(id, pw);
 					System.out.println(check);
 					if (result == 0 && check == 0) { // 접속을 허용한 상태
-						
+
 						st_buffer.append(YES_LOGON);
+						st_buffer.append(SEPARATOR);
+						st_buffer.append(id);
 						// YES_LOGON|개설시각|ID1`ID2`..
 						send(st_buffer.toString());
-						System.out.println(id+" "+pw);
+						System.out.println(id + " " + pw);
 					} else { // 접속불가 상태
 						st_buffer.append(NO_LOGON); // NO_LOGON|errCode
 						st_buffer.append(SEPARATOR);
@@ -123,7 +129,7 @@ public class ServerThread extends Thread {
 					}
 					break;
 				}
-				case REQ_SIGNUP:{
+				case REQ_SIGNUP: {
 					int check;
 					String id = st.nextToken();
 					String pw = st.nextToken();
@@ -132,12 +138,12 @@ public class ServerThread extends Thread {
 					 * 디비 Insert 부분
 					 */
 					check = DB.checksignup(id, pn);
-					if(check==0) {
+					if (check == 0) {
 						st_buffer.setLength(0);
 						st_buffer.append(YES_SIGNUP);
 						send(st_buffer.toString());
 						DB.createid(id, pw, pn);
-					}else {
+					} else {
 						st_buffer.setLength(0);
 						st_buffer.append(NO_SIGNUP);
 						st_buffer.append(SEPARATOR);
@@ -219,18 +225,18 @@ public class ServerThread extends Thread {
 					String ids = "";
 					st_buffer.setLength(0);
 					st_buffer.append(YES_LOGOUT);
-					st_buffer.append(SEPARATOR);
-					st_buffer.append(st_ID);
+					// st_buffer.append(SEPARATOR);
+					// st_buffer.append(st_ID);
 					logonVector.remove(st_ID);
 					logonHash.remove(st_ID);
-					st_buffer.append(SEPARATOR);
-					ids = getUsers();
-					if (ids.compareTo("") == 0)
-						ids = " ";
-					st_buffer.append(ids);
-					broadcast(st_buffer.toString(), WAITROOM);
-					st_buffer.setLength(0);
-					st_buffer.append(C_LOGOUT);
+					// st_buffer.append(SEPARATOR);
+					// ids = getUsers();
+					// if (ids.compareTo("") == 0)
+					// ids = " ";
+					// st_buffer.append(ids);
+					// broadcast(st_buffer.toString(), WAITROOM);
+					// st_buffer.setLength(0);
+					// st_buffer.append(C_LOGOUT);
 					send(st_buffer.toString());
 					break;
 				}
@@ -253,31 +259,93 @@ public class ServerThread extends Thread {
 					send(st_buffer.toString());
 					break;
 				}
-				//게시판 입장 전송 메세지 PACKET : YES_ENTERBOARD|게시판내용
-				case REQ_ENTERBOARD:{ 
-					st_buffer.setLength(0);
-					st_buffer.append(YES_ENTERBOARD);
+				// 게시판 입장 전송 메세지 PACKET : YES_ENTERBOARD|게시판내용
+				case REQ_ENTERBOARD: {
+					String[] buffer = new String[1000];
 					/*
 					 * 디비접속 후 게시판 내용 읽어서 보내주기
 					 */
-					send(st_buffer.toString());
+					buffer = DB.getboard();
+					for (int i = 0; i < buffer.length; i++) {
+						if (buffer[i].equals("")) {
+							System.out.println("hello");
+							break;
+						} else {
+							StringTokenizer stb = new StringTokenizer(buffer[i], SEPARATOR);
+							String board_No = stb.nextToken();
+							String title = stb.nextToken();
+							String text = stb.nextToken();
+							String ID = stb.nextToken();
+							String date = stb.nextToken();
+							st_buffer.setLength(0);
+							st_buffer.append(YES_ENTERBOARD);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(board_No);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(title);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(text);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(ID);
+							st_buffer.append(SEPARATOR);
+							st_buffer.append(date);
+							System.out.println(st_buffer.toString());
+							send(st_buffer.toString());
+						}
+					}
 					break;
 				}
-				case REQ_WRITEBOARD:{ 
+				case REQ_WRITEBOARD: {
 					st_buffer.setLength(0);
-					st_buffer.append(YES_ENTERWRITEBOARD);
+					String title = st.nextToken();
+					String text = st.nextToken();
+					String id = st.nextToken();
+					String pw = st.nextToken();
+					int result;
 					/*
 					 * 디비접속 후 게시판 내용 읽어서 보내주기
 					 */
-					send(st_buffer.toString());
+					result = DB.setboard(title, text, id, pw);
+					if (result == 0) {
+						st_buffer.append(YES_WRITEBOARD);
+						send(st_buffer.toString());
+					} else {
+						st_buffer.append(NO_WRITEBOARD);
+						st_buffer.append(SEPARATOR);
+						new String();
+						st_buffer.append(String.valueOf(result));
+						send(st_buffer.toString());
+					}
 					break;
 				}
-				case REQ_READBOARD:{ 
+				case REQ_READBOARD: {
+					String no = st.nextToken();
+					String buffer = new String();
+
+					st_buffer.setLength(0);
+					/*
+					 * 디비접속 후 게시판 내용 읽어서 보내주기
+					 */
+					new String();
+					buffer = DB.selectboard(Integer.parseInt(no));
+					StringTokenizer stb = new StringTokenizer(buffer, SEPARATOR);
+					String board_No = stb.nextToken();
+					String title = stb.nextToken();
+					String text = stb.nextToken();
+					String ID = stb.nextToken();
+					String date = stb.nextToken();
 					st_buffer.setLength(0);
 					st_buffer.append(YES_ENTERREADBOARD);
-					/*
-					 * 디비접속 후 게시판 내용 읽어서 보내주기
-					 */
+					st_buffer.append(SEPARATOR);
+					st_buffer.append(board_No);
+					st_buffer.append(SEPARATOR);
+					st_buffer.append(title);
+					st_buffer.append(SEPARATOR);
+					st_buffer.append(text);
+					st_buffer.append(SEPARATOR);
+					st_buffer.append(ID);
+					st_buffer.append(SEPARATOR);
+					st_buffer.append(date);
 					send(st_buffer.toString());
 					break;
 				}
@@ -286,7 +354,9 @@ public class ServerThread extends Thread {
 				Thread.sleep(100);
 			} // while 종료
 
-		} catch (NullPointerException e) { // 로그아웃시 st_in이 이 예외를 발생하므로
+		} catch (
+
+		NullPointerException e) { // 로그아웃시 st_in이 이 예외를 발생하므로
 		} catch (InterruptedException e) {
 		} catch (IOException e) {
 		}

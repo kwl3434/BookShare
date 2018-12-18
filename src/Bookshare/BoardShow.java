@@ -12,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Date;
 
 public class BoardShow extends Frame implements ActionListener{
 	
@@ -27,7 +26,7 @@ public class BoardShow extends Frame implements ActionListener{
 	private TextArea dr_taContents; // 게시판 내용
 	private TextField dr_tfPassword; // 대화말 입력필드
 	private TextField dr_tfTitle; //게시판 제목
-	private Date boardtime;
+	private String boardtime;
 	public static ClientThread dr_thread;
 
 	public BoardShow(ClientThread client, String title) {
@@ -103,6 +102,11 @@ public class BoardShow extends Frame implements ActionListener{
 		}else if(b.getLabel().equals("글쓴이에게 쪽지하기")) {
 			//채워야함
 		}
+	}
+	public void setTextArea(String title, String data,String date) {
+		dr_tfTitle.setText(title);
+		dr_taContents.setText(data);
+		boardtime=date;
 	}
 
 }

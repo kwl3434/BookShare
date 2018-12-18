@@ -96,6 +96,11 @@ public class BoardContent extends Frame implements ActionListener{
 		Button b = (Button) ae.getSource();
 		if (b.getLabel().equals("업로드하기")) {
 			//채워야함
+			String title=dr_tfTitle.getText();
+			String text=dr_taContents.getText();
+			String id=dr_thread.getID();
+			String pw=dr_tfPassword.getText();
+			dr_thread.requestWriteBoard(title, text, id, pw);
 		}
 	}
 

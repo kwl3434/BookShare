@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 
 public class DBconnect {
 	private final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
@@ -254,7 +256,7 @@ public class DBconnect {
 		if(rs>0)return 0;
 		else return 1;
 	}
-	public int setboard(String title,String text, String id, String password,String date) 
+	public int setboard(String title,String text, String id, String password) 
 	{
 		/*
 		 * 게시판 작성 쿼리
@@ -265,17 +267,15 @@ public class DBconnect {
 		 */
 		Connection conn = null;
 		Statement state = null;
-		String board_No="0";
 		int rs=0;
 		try {
 			Class.forName(JDBC_DRIVER);
 			conn = DriverManager.getConnection(DB_URL, USER_NAME, PASSWORD);
 			System.out.println("\n- MySQL Connection");
 			state = conn.createStatement();
-
 			String sql;
-			sql = "INSERT INTO board(board_no,title,text,id,password,date)";
-			sql+= "VALUES('"+board_No+"','"+title+"','"+text+"','"+id+"',"+password+"'"+date+"')";
+			sql = "INSERT INTO board(title,text,id,password) ";
+			sql+= "VALUES('"+title+"','"+text+"','"+id+"','"+password+"')";
 			rs = state.executeUpdate(sql);
 			
 			state.close();
@@ -315,6 +315,40 @@ public class DBconnect {
 				String ID = rs.getString("id");
 				String date = rs.getString("date");
 				buffer[i]=board_No+SEPARATOR+title+SEPARATOR+text+SEPARATOR+ID+SEPARATOR+date;
+				i++;
+			}
+			buffer[i]="";
+			rs.close();
+			state.close();
+			conn.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("\n\n- MySQL Connection Close");
+		return buffer;
+	}
+	public String selectboard(int no) {
+		String buffer= new String();
+		Connection conn = null;
+		Statement state = null;
+		try {
+			Class.forName(JDBC_DRIVER);
+			conn = DriverManager.getConnection(DB_URL, USER_NAME, PASSWORD);
+			System.out.println("\n- MySQL Connection");
+			state = conn.createStatement();
+
+			String sql;
+			sql = "SELECT board_no,title,text,id,date FROM board WHERE board_no="+"'"+no+"'";
+			ResultSet rs = state.executeQuery(sql);
+			int i=0;
+			while (rs.next()) {
+				String board_No = rs.getString("board_no");
+				String title = rs.getString("title");
+				String text = rs.getString("text");
+				String ID = rs.getString("id");
+				String date = rs.getString("date");
+				buffer=board_No+SEPARATOR+title+SEPARATOR+text+SEPARATOR+ID+SEPARATOR+date;
 				i++;
 			}
 			rs.close();

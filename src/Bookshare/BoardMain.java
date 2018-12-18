@@ -2,17 +2,20 @@ package Bookshare;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.StringTokenizer;
 
 public class BoardMain extends Frame implements ActionListener{
 
+	private static final String SEPARATOR = "|";
+	
 	private Label lr_Label1;
 	private Label lr_Label2;
 	private Button lr_btwrite;	 // 글 작성 버튼
 	private Button lr_btLook;	// 뒤로가기 버튼
 	private Button lr_btfind;	// 검색 버튼
-	private List lr_writelist; // 글 목록 리스트
 	private TextField lr_tfInput; // 글 검색 필드
 	
+	public List lr_writelist; // 글 목록 리스트
 
 	public static ClientThread dr_thread;
 
@@ -70,6 +73,7 @@ public class BoardMain extends Frame implements ActionListener{
 	class WinListener extends WindowAdapter {
 		public void windowClosing(WindowEvent we) {
 			dr_thread.requestQuitBoard();
+			lr_writelist.removeAll();
 		}
 	}
 
@@ -78,13 +82,15 @@ public class BoardMain extends Frame implements ActionListener{
 		Button b = (Button) ae.getSource();
 		if (b.getLabel().equals("게시물 작성")) {
 			// 글 작성 처리 루틴
-			dr_thread.requestWriteBoard();
+			dr_thread.requestEnterWriteBoard();
 		} else if (b.getLabel().equals("게시물 보기")) {
 			// 보기 처리 루틴
-			dr_thread.requestReadBoard();
+			
 			String item = lr_writelist.getSelectedItem();
+			StringTokenizer st = new StringTokenizer(item, SEPARATOR);
 			if(item != null) {
-				
+				String no = st.nextToken();
+				dr_thread.requestReadBoard(no);
 			}
 			
 		} else if (b.getLabel().equals("검색")) {

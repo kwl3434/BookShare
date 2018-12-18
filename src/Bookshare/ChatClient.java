@@ -3,7 +3,14 @@ package Bookshare;
 import java.awt.*;
 import java.awt.event.*;
 
-public class ChatClient extends Frame implements ActionListener {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+public class ChatClient extends JFrame implements ActionListener {
 
 	private Button cc_btLogon; // 로그온 실행 버튼
 	private Button cc_btIDsearch; // id찾기
@@ -13,9 +20,9 @@ public class ChatClient extends Frame implements ActionListener {
 	private PwSearch PwSc;
 	
 	protected SignupDisplay SignD;
-	protected TextField cc_tfID; // 로그온 입력 텍스트 필드
+	protected JTextField cc_tfID; // 로그온 입력 텍스트 필드
 	
-	public TextField cc_tfPW; // 로그온 개설 안내
+	public JPasswordField cc_tfPW; // 로그온 개설 안내
 	
 	
 	public static ClientThread cc_thread;
@@ -27,20 +34,20 @@ public class ChatClient extends Frame implements ActionListener {
 		super(title);
 		setLayout(new BorderLayout());
 
-		Panel north = new Panel();
+		JPanel north = new JPanel();
 		north.setLayout(new FlowLayout());
-		north.add(new Label("Book 자유시장"));
+		north.add(new JLabel("Book 자유시장"));
 		add("North", north);
 
-		Panel center = new Panel();
+		JPanel center = new JPanel();
 		center.setLayout(new FlowLayout());
 
-		center.add(new Label("아이디    "));
-		cc_tfID = new TextField(25);
+		center.add(new JLabel("아이디    "));
+		cc_tfID = new JTextField(14);
 		center.add(cc_tfID);
 
-		center.add(new Label("비밀번호"));
-		cc_tfPW = new TextField(25);
+		center.add(new JLabel("비밀번호"));
+		cc_tfPW = new JPasswordField(14);
 		center.add(cc_tfPW);
 
 		cc_btLogon = new Button("로그인");
@@ -48,7 +55,7 @@ public class ChatClient extends Frame implements ActionListener {
 		cc_btLogon.addActionListener(this);
 		add("Center", center);
 
-		Panel south = new Panel();
+		JPanel south = new JPanel();
 		south.setLayout(new FlowLayout());
 		cc_btIDsearch = new Button("아이디 찾기");
 		cc_btIDsearch.addActionListener(this);
@@ -62,8 +69,8 @@ public class ChatClient extends Frame implements ActionListener {
 		south.add(cc_btSignup);
 		cc_btSignup.addActionListener(this);
 		center.add("South", south);
-		setSize(300, 350);
 		addWindowListener(new WinListener());
+		//setSize(100,100);
 	}
 
 	class WinListener extends WindowAdapter {
@@ -104,7 +111,7 @@ public class ChatClient extends Frame implements ActionListener {
 
 	public static void main(String args[]) {
 		client = new ChatClient("대화방 개설 및 입장");
-		client.setSize(350, 350);
+		client.setSize(450, 340);
 		client.show();
 
 		// 소켓을 생성하고 서버와 통신할 스레드를 호출한다.
