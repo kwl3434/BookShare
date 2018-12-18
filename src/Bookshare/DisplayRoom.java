@@ -2,6 +2,11 @@ package Bookshare;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
 
 public class DisplayRoom extends Frame implements ActionListener {
 
@@ -14,11 +19,23 @@ public class DisplayRoom extends Frame implements ActionListener {
 	private Button dr_btLogout; //로그아웃 창
 
 	public static ClientThread dr_thread;
-
+	
+	Image img = null;
+	
 	public DisplayRoom(ClientThread client, String title) {
 		super(title);
 		setLayout(new BorderLayout());
-
+		
+		try {
+			File sourceimage = new File("book.jpg");
+			img = ImageIO.read(sourceimage);
+		} catch(IOException e) {
+			System.out.println("이미지파일이 없습니다");
+		}
+		JLabel label = new JLabel(new ImageIcon(img));
+		Panel picture = new Panel();
+		picture.setLayout(new FlowLayout());
+		picture.add(label);
 		// 대화방에서 사용하는 컴포넌트를 배치한다.
 		Panel centerpanel = new Panel();
 		centerpanel.setLayout(new FlowLayout());
@@ -33,14 +50,15 @@ public class DisplayRoom extends Frame implements ActionListener {
 		dr_btLogout = new Button("로그아웃");
 		dr_btLogout.addActionListener(this);
 		centerpanel.add(dr_btLogout);
-
+		
+		add("Center", picture);
 		add("South", centerpanel);
 
 		dr_thread = client; // ClientThread 클래스와 연결한다.
 
 		// 입력 텍스트 필드에 포커스를 맞추는 메소드 추가
 		
-		setSize(300, 350);
+		setSize(500, 500);
 		addWindowListener(new WinListener());
 		
 	}

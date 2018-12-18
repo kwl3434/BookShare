@@ -22,15 +22,10 @@ public class ServerThread extends Thread {
 
 	private static final String SEPARATOR = "|"; // 메시지간 구분자
 	private static final String DELIMETER = "`"; // 소메시지간 구분자
-	private static Date starttime; // 로그온 시각
 
 	public String st_ID; // ID 저장
 
 	// 메시지 패킷 코드 및 데이터 정의
-	private static final int WAITROOM = 100;
-	private static final int CHATROOM = 101;
-	private static final int MDY_WAITUSERS = 200;
-	private static final int MDY_ROOMUSERS = 201;
 	// 클라이언트로부터 전달되는 메시지 코드
 	private static final int REQ_LOGON = 1001;
 	private static final int REQ_SIGNUP = 1002;
@@ -39,6 +34,7 @@ public class ServerThread extends Thread {
 	private static final int REQ_ENTERMSG = 1013;
 	private static final int REQ_WRITEBOARD = 1014;
 	private static final int REQ_READBOARD = 1015;
+	private static final int REQ_REMOVEBOARD =1016;
 	private static final int REQ_SENDWORDS = 1021;
 	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
@@ -61,10 +57,11 @@ public class ServerThread extends Thread {
 	private static final int C_LOGOUT = 2033;
 	private static final int C_QUITROOM = 2042;
 	private static final int YES_ENTERBOARD = 2050;
-	private static final int YES_ENTERWRITEBOARD = 2051;
-	private static final int YES_ENTERREADBOARD = 2052;
 	private static final int YES_WRITEBOARD = 2060;
 	private static final int NO_WRITEBOARD = 2061;
+	private static final int YES_READBOARD = 2062;
+	private static final int YES_REMOVEBOARD =2063;
+	private static final int NO_REMOVEBOARD =2064;
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -171,20 +168,11 @@ public class ServerThread extends Thread {
 
 					if (isOpenRoom == 0) { // 대화방 개설시간 설정
 						isOpenRoom = 1;
-						starttime = new Date();
 					}
 
 					// YES_ENTERROOM PACKET : YES_ENTERROOM
 					st_buffer.append(YES_ENTERROOM);
 					send(st_buffer.toString()); // YES_ENTERROOM 패킷을 전송한다.
-
-					// MDY_USERIDS PACKET : MDY_USERIDS|id1'id2' ....
-					st_buffer.setLength(0);
-					st_buffer.append(MDY_USERIDS);
-					st_buffer.append(SEPARATOR);
-					String userIDs = getRoomUsers(); // 대화방 참여 사용자 ID를 구한다
-					st_buffer.append(userIDs);
-					broadcast(st_buffer.toString(), CHATROOM); // MDY_USERIDS 패킷을 전송한다.
 					break;
 				}
 
@@ -195,65 +183,21 @@ public class ServerThread extends Thread {
 					send(st_buffer.toString()); // YES_SENDWORDS 패킷 전송
 					break;
 				}
-				case REQ_WISPERSEND: {
-					String id = st.nextToken();
-					String data = st.nextToken();
-					String rid = st.nextToken();
-					if (id.compareTo(rid) == 0) {
-						st_buffer.setLength(0);
-						st_buffer.append(NO_WISPERWORDS);
-						send(st_buffer.toString());
-					} else {
-						st_buffer.setLength(0);
-						st_buffer.append(YES_WISPERWORDS);
-						st_buffer.append(SEPARATOR);
-						// 전송한 사용자의 ID를 구한다.
-						st_buffer.append(id);
-						st_buffer.append(SEPARATOR);
-						// 대화말을 구한다.
-
-						st_buffer.append(data);
-						st_buffer.append(SEPARATOR);
-						st_buffer.append(rid);
-						multicast(st_buffer.toString(), id, rid);
-					}
-					break;
-				}
 				// LOGOUT 전송 시도 메시지
 				// PACKET : YES_LOGOUT|탈퇴자ID|탈퇴자 이외의 ids
 				case REQ_LOGOUT: {
-					String ids = "";
 					st_buffer.setLength(0);
 					st_buffer.append(YES_LOGOUT);
-					// st_buffer.append(SEPARATOR);
-					// st_buffer.append(st_ID);
 					logonVector.remove(st_ID);
 					logonHash.remove(st_ID);
-					// st_buffer.append(SEPARATOR);
-					// ids = getUsers();
-					// if (ids.compareTo("") == 0)
-					// ids = " ";
-					// st_buffer.append(ids);
-					// broadcast(st_buffer.toString(), WAITROOM);
-					// st_buffer.setLength(0);
-					// st_buffer.append(C_LOGOUT);
 					send(st_buffer.toString());
 					break;
 				}
 
 				// 방 입장전의 LOGOUT 전송 시도 메시지 PACKET : YES_QUITROOM
 				case REQ_QUITROOM: {
-					String ids = "";
-					st_buffer.setLength(0);
-					st_buffer.append(YES_QUITROOM);
-					st_buffer.append(SEPARATOR);
 					roomVector.removeElement(st_ID);
 					roomHash.remove(st_ID);
-					ids = getRoomUsers();
-					if (ids.compareTo("") == 0)
-						ids = " ";
-					st_buffer.append(ids);
-					broadcast(st_buffer.toString(), CHATROOM);
 					st_buffer.setLength(0);
 					st_buffer.append(C_QUITROOM);
 					send(st_buffer.toString());
@@ -335,7 +279,7 @@ public class ServerThread extends Thread {
 					String ID = stb.nextToken();
 					String date = stb.nextToken();
 					st_buffer.setLength(0);
-					st_buffer.append(YES_ENTERREADBOARD);
+					st_buffer.append(YES_READBOARD);
 					st_buffer.append(SEPARATOR);
 					st_buffer.append(board_No);
 					st_buffer.append(SEPARATOR);
@@ -346,6 +290,19 @@ public class ServerThread extends Thread {
 					st_buffer.append(ID);
 					st_buffer.append(SEPARATOR);
 					st_buffer.append(date);
+					send(st_buffer.toString());
+					break;
+				}
+				case REQ_REMOVEBOARD:{
+					String pw = st.nextToken();
+					String b_no = st.nextToken();
+					int result;
+					result = DB.removeboard(pw, b_no);
+					st_buffer.setLength(0);
+					if(result==0) 
+						st_buffer.append(YES_REMOVEBOARD);
+					else
+						st_buffer.append(NO_REMOVEBOARD);
 					send(st_buffer.toString());
 					break;
 				}
@@ -391,93 +348,6 @@ public class ServerThread extends Thread {
 		ServerThread alreadyClient = null;
 		alreadyClient = (ServerThread) logonHash.get(id);
 		return alreadyClient;
-	}
-
-	// 로그온에 참여한 사용자 ID를 구한다.
-	private String getUsers() {
-		StringBuffer id = new StringBuffer();
-		String ids;
-		Enumeration<String> enu = logonVector.elements();
-		while (enu.hasMoreElements()) {
-			id.append(enu.nextElement());
-			id.append(DELIMETER);
-		}
-		try {
-			ids = new String(id); // 문자열로 변환한다.
-			ids = ids.substring(0, ids.length() - 1); // 마지막 "`"를 삭제한다.
-		} catch (StringIndexOutOfBoundsException e) {
-			return "";
-		}
-		return ids;
-	}
-
-	// 대화방에 참여한 사용자 ID를 구한다.
-
-	private String getRoomUsers() {
-		StringBuffer id = new StringBuffer();
-		String ids;
-		Enumeration<String> enu = roomVector.elements();
-		while (enu.hasMoreElements()) {
-			id.append(enu.nextElement());
-			id.append(DELIMETER);
-		}
-		try {
-			ids = new String(id);
-			ids = ids.substring(0, ids.length() - 1); // 마지막 "`"를 삭제한다.
-		} catch (StringIndexOutOfBoundsException e) {
-			return "";
-		}
-		return ids;
-	}
-
-	private void modifyWaitUsers() throws IOException {
-		String ids = getUsers();
-		st_buffer.setLength(0);
-		st_buffer.append(MDY_WAITUSERS);
-		st_buffer.append(SEPARATOR);
-	}
-
-	private void modifyRoomUsers() throws IOException {
-		String ids = getRoomUsers();
-		st_buffer.setLength(0);
-		st_buffer.append(MDY_ROOMUSERS);
-		st_buffer.append(SEPARATOR);
-		st_buffer.append(ids);
-		broadcast(st_buffer.toString(), CHATROOM);
-	}
-
-	// 대화방에 참여한 모든 사용자(브로드케스팅)에게 데이터를 전송한다.
-	public synchronized void broadcast(String sendData, int room) throws IOException {
-		ServerThread client;
-		Enumeration<String> enu;
-		if (room == WAITROOM) {
-			enu = logonVector.elements();
-			while (enu.hasMoreElements()) {
-				client = (ServerThread) logonHash.get(enu.nextElement());
-				client.send(sendData);
-			}
-
-		} else {
-			enu = roomVector.elements();
-			while (enu.hasMoreElements()) {
-				client = (ServerThread) roomHash.get(enu.nextElement());
-				client.send(sendData);
-			}
-		}
-	}
-
-	public synchronized void multicast(String sendData, String id, String rid) throws IOException {
-		ServerThread client;
-		Enumeration<String> enu;
-		enu = roomVector.elements();
-		while (enu.hasMoreElements()) {
-			String next = enu.nextElement();
-			System.out.println(next);
-			if (next.compareTo(id) == 0 || next.compareTo(rid) == 0) {
-				client = (ServerThread) roomHash.get(next);
-				client.send(sendData);
-			}
-		}
 	}
 
 	// 데이터를 전송한다.

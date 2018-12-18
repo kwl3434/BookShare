@@ -110,8 +110,8 @@ public class ChatClient extends JFrame implements ActionListener {
 	}
 
 	public static void main(String args[]) {
-		client = new ChatClient("대화방 개설 및 입장");
-		client.setSize(450, 340);
+		client = new ChatClient("Book market");
+		client.setSize(270, 300);
 		client.show();
 
 		// 소켓을 생성하고 서버와 통신할 스레드를 호출한다.

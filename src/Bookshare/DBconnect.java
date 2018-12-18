@@ -114,13 +114,6 @@ public class DBconnect {
 			
 			sql = "SELECT * FROM user WHERE id='"+id+"'";
 			ResultSet rs=null;
-			try {
-				rs = state.executeQuery(sql);
-			}catch(SQLException sq) {
-				rs=null;
-			}
-			if(!rs.next()) idcheck= true;
-		
 			
 			sql = "SELECT * FROM user WHERE phonenumber='"+pn+"'";
 			try {
@@ -305,7 +298,7 @@ public class DBconnect {
 			state = conn.createStatement();
 
 			String sql;
-			sql = "SELECT board_no,title,text,id,date FROM board";
+			sql = "SELECT board_no,title,text,id,date FROM board ORDER BY board_no DESC";
 			ResultSet rs = state.executeQuery(sql);
 			int i=0;
 			while (rs.next()) {
@@ -361,7 +354,7 @@ public class DBconnect {
 		System.out.println("\n\n- MySQL Connection Close");
 		return buffer;
 	}
-	public int removeboard(int boardindex) 
+	public int removeboard(String pw, String boardindex) 
 	{
 		/*
 		 * 게시글 삭제 쿼리
@@ -372,6 +365,7 @@ public class DBconnect {
 		Connection conn = null;
 		Statement state = null;
 		int rs=0;
+		System.out.println(boardindex);
 		try {
 			Class.forName(JDBC_DRIVER);
 			conn = DriverManager.getConnection(DB_URL, USER_NAME, PASSWORD);
@@ -379,10 +373,25 @@ public class DBconnect {
 			state = conn.createStatement();
 
 			String sql;
-			sql = "DELETE FROM board WHERE board_no='"+boardindex+"'";
-			rs = state.executeUpdate(sql);
 			
+			sql = "SELECT password FROM board WHERE board_no="+Integer.parseInt(boardindex);
+			ResultSet Rs = null;
+			String dPw="";
+			try {
+				Rs = state.executeQuery(sql);
+				Rs.next();
+				dPw= Rs.getString("password");
+			}catch(SQLException sq) {
+				Rs=null;
+			}
+			System.out.println(dPw+"dPw");
+			System.out.println(pw);
+			if(dPw.equals(pw)) {
+				sql = "DELETE FROM board WHERE board_no="+Integer.parseInt(boardindex);
+				rs = state.executeUpdate(sql);
+			}else rs = 0;
 			
+			Rs.close();
 			state.close();
 			conn.close();
 			
@@ -409,7 +418,7 @@ public class DBconnect {
 			conn = DriverManager.getConnection(DB_URL, USER_NAME, PASSWORD);
 			System.out.println("\n- MySQL Connection");
 			state = conn.createStatement();
-
+			
 			String sql;
 			sql = "UPDATE board SET title='";
 			sql+=title+"',"+"board='"+board+"',"+"id='"+id+"', date='"+date+"' WHERE board_no='"+boardindex+"' LIMIT 1";

@@ -26,13 +26,12 @@ public class ClientThread extends Thread {
 	// 서버에 전송하는 메시지 코드
 	private static final int REQ_LOGON = 1001;
 	private static final int REQ_SIGNUP = 1002;
-	private static final int REQ_ENTERROOM = 1011;
 	private static final int REQ_ENTERBOARD =1012;
 	private static final int REQ_ENTERMSG =1013;
 	private static final int REQ_WRITEBOARD =1014;
 	private static final int REQ_READBOARD =1015;
+	private static final int REQ_REMOVEBOARD =1016;
 	private static final int REQ_SENDWORDS = 1021;
-	private static final int REQ_WISPERSEND = 1022;
 	private static final int REQ_LOGOUT = 1031;
 	private static final int REQ_QUITROOM = 1041;
 	
@@ -44,21 +43,18 @@ public class ClientThread extends Thread {
 	private static final int NO_SIGNUP = 2004;
 	private static final int YES_ENTERROOM = 2011;
 	private static final int NO_ENTERROOM = 2012;
-	private static final int MDY_USERIDS = 2013;
 	private static final int YES_ENTERMSG = 2021;
 	private static final int NO_SENDWORDS = 2022;
-	private static final int YES_WISPERWORDS = 2023;
-	private static final int NO_WISPERWORDS = 2024;
 	private static final int YES_LOGOUT = 2031;
 	private static final int NO_LOGOUT = 2032;
 	private static final int YES_QUITROOM = 2041;
 	private static final int C_QUITROOM = 2042;
 	private static final int YES_ENTERBOARD = 2050;
-	private static final int YES_ENTERWRITEBOARD = 2051;
-	private static final int YES_ENTERREADBOARD = 2052;
 	private static final int YES_WRITEBOARD = 2060;
 	private static final int NO_WRITEBOARD = 2061;
 	private static final int YES_READBOARD = 2062;
+	private static final int YES_REMOVEBOARD =2063;
+	private static final int NO_REMOVEBOARD =2064;
 
 	// 에러 메시지 코드
 	private static final int MSG_ALREADYUSER = 3001;
@@ -91,10 +87,16 @@ public class ClientThread extends Thread {
 	@SuppressWarnings("deprecation")
 	public void run() {
 		room = new DisplayRoom(this, "메인");
+		room.setSize(1000,600);
+		room.pack();
 		bmain = new BoardMain(this,"게시판 메인");
-		room = new DisplayRoom(this, "대화방");
+		bmain.pack();
 		bshow = new BoardShow(this,"게시판 보기");
+		bshow.setSize(1000,600);
+		bshow.pack();
 		bcontent = new BoardContent(this, "게시판 작성");
+		bcontent.setSize(1000,600);
+		bcontent.pack();
 		
 		try {
 			Thread currThread = Thread.currentThread();
@@ -127,7 +129,7 @@ public class ClientThread extends Thread {
 					MessageBox msgBox = new MessageBox(null, "회원가입 완료", "회원가입이 완료되었습니다.");
 					msgBox.show();
 					ct_client.SignD.dispose();
-					ct_client.pack();
+					//ct_client.pack();
 					ct_client.show();
 					break;
 				}
@@ -152,37 +154,17 @@ public class ClientThread extends Thread {
 				// 대화방 개설 및 입장 성공 메시지 PACKET : YES_ENTERROOM
 				case YES_ENTERROOM: {
 					ct_client.dispose(); // 로그온 창을 지운다.
-					room.pack();
+					//room.pack();
 					room.show(); // 대화방 창을 출력한다.
-					bcontent.pack();
+					//bcontent.pack();
 					bcontent.show();
-					bshow.pack();
+					//bshow.pack();
 					bshow.show();
-					break;
-				}
-
-				// 대화방 개설 및 입장 실패 메시지 PACKET : NO_ENTERROOM|errCode
-				case NO_ENTERROOM: {
-					int roomerrcode = Integer.parseInt(st.nextToken());
-					if (roomerrcode == MSG_CANNOTOPEN) {
-						msgBox = new MessageBox(ct_client, "대화방입장", "로그온된 사용자가 아닙니다.");
-						msgBox.show();
-					}
 					break;
 				}
 
 				// 대화방에 참여한 사용자 리스트를 업그레이드 한다.
 				// PACKET : MDY_USERIDS|id1'id2'id3.....
-				case MDY_USERIDS: {
-					/*room.dr_lstMember.clear(); // 모든 ID를 삭제한다.
-					String ids = st.nextToken(); // 대화방 참여자 리스트
-					StringTokenizer roomusers = new StringTokenizer(ids, DELIMETER);
-					room.dr_lstMember.removeAll();
-					while (roomusers.hasMoreTokens()) {
-						room.dr_lstMember.add(roomusers.nextToken());
-					}*/
-					break;
-				}
 				case YES_WRITEBOARD:{
 					MessageBox msgBox = new MessageBox(null, "게시물", "게시물이 작성되었습니다.");
 					msgBox.show();
@@ -193,51 +175,14 @@ public class ClientThread extends Thread {
 				case YES_ENTERMSG: {
 					room.dispose();
 					MR = new MessageRoom(this,"쪽지창");
-					MR.pack();
 					MR.show();
 					break;
 				}
-				case YES_WISPERWORDS: {
-					/*String id = st.nextToken();
-					try {
-						String data = st.nextToken();
-						String rid = st.nextToken();
-						room.dr_taContents.append(id + "->" + rid + " : " + data + "\n");
-					} catch (NoSuchElementException e) {
-					}
-					room.dr_tfInput.setText("");
-					*/
-					break;
-				}
-				case NO_WISPERWORDS: {
-					/*room.dr_taContents.append("자신에게는 귓속말 할수 없습니다.\n");
-					room.dr_tfInput.setText("");
-					*/
-					break;
-				}
-				// LOGOUT 메시지 처리
-				// PACKET : YES_LOGOUT|탈퇴자id|탈퇴자 제외 id1, id2,....
 				case YES_LOGOUT: {
 					room.dispose();
 					ct_client.show();
 					ct_client.cc_tfID.setText("");
 					ct_client.cc_tfPW.setText("");
-					break;
-				}
-				// 퇴실 메시지(YES_QUITROOM) 처리 PACKET : YES_QUITROOM|ids
-				case YES_QUITROOM: {
-					/*Sring ids = st.nextToken(); // 대화방 참여자 리스트
-					if (ids.compareTo(" ") == 0) {
-						room.dr_lstMember.removeAll();
-					} else {
-						StringTokenizer roomusers = new StringTokenizer(ids, DELIMETER);
-						room.dr_lstMember.removeAll();
-						while (roomusers.hasMoreTokens()) {
-							room.dr_lstMember.add(roomusers.nextToken());
-						}
-
-					}
-					*/
 					break;
 				}
 				case C_QUITROOM: {
@@ -251,13 +196,12 @@ public class ClientThread extends Thread {
 					st.nextToken();
 					String ID = st.nextToken();
 					String date = st.nextToken();
-					bmain.pack();
 					bmain.show();
 					room.dispose();
 					bmain.lr_writelist.add(board_No+"| 제목 : "+title+"  "+"  작성자 : "+ID+"  작성일 : "+date);
 					break;
 				}
-				case YES_ENTERREADBOARD:{
+				case YES_READBOARD:{
 					String board_No = st.nextToken();
 					String title = st.nextToken();
 					String text = st.nextToken();
@@ -266,11 +210,15 @@ public class ClientThread extends Thread {
 					System.out.println(board_No+title+text+ID+date);
 					bshow.setTextArea(title, text, date);
 					bmain.dispose();
-					bshow.pack();
+					bshow.b_no=Integer.parseInt(board_No);
 					bshow.show();
 					break;
 				}
-				
+				case YES_REMOVEBOARD:{
+					MessageBox msgBox = new MessageBox(null, "게시물삭제", "게시물이 삭제되었습니다.");
+					msgBox.show();
+					break;
+				}
 				} // switch 종료
 
 				Thread.sleep(200);
@@ -385,28 +333,40 @@ public class ClientThread extends Thread {
 	}
 	public void requestEnterWriteBoard() {
 		bmain.dispose();
-		bcontent.pack();
 		bcontent.show();
 	}
 	public void requestQuitRBoard() {
 		bshow.dispose();
-		bmain.pack();
-		bmain.show();
+		room.show();
+		bmain.lr_writelist.removeAll();
 	}
 	public void requestQuitWBoard() {
 		bcontent.dispose();
-		bmain.pack();
-		bmain.show();
+		room.show();
+		bmain.lr_writelist.removeAll();
 	}
 	public void requestQuitBoard() {
 		bmain.dispose();
-		room.pack();
 		room.show();
+		bmain.lr_writelist.removeAll();
 	}
 	public void requestQuitMSG() {
 		MR.dispose();
-		room.pack();
 		room.show();
+	}
+	public void requestremoveBoard(String pw, int b_no) {
+		try {
+			ct_buffer.setLength(0); // SendWords 패킷을 생성한다.
+			ct_buffer.append(REQ_REMOVEBOARD);
+			ct_buffer.append(SEPARATOR);
+			ct_buffer.append(pw);
+			ct_buffer.append(SEPARATOR);
+			new String();
+			ct_buffer.append(String.valueOf(b_no));
+			send(ct_buffer.toString()); // SendWords 패킷을 전송한다.
+		} catch (IOException e) {
+			System.out.println(e);
+		}
 	}
 	public String getID() {
 		return ct_ID;

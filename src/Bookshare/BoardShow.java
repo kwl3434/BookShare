@@ -15,7 +15,6 @@ import java.awt.event.WindowEvent;
 
 public class BoardShow extends Frame implements ActionListener{
 	
-	private Button dr_btRevise; // 수정
 	private Button dr_btRemove; // 삭제
 	private Button dr_btMessage; //쪽지하기
 	private Label Title;
@@ -26,9 +25,10 @@ public class BoardShow extends Frame implements ActionListener{
 	private TextArea dr_taContents; // 게시판 내용
 	private TextField dr_tfPassword; // 대화말 입력필드
 	private TextField dr_tfTitle; //게시판 제목
-	private String boardtime;
+	private TextField boardtime;
 	public static ClientThread dr_thread;
-
+	public int b_no=0;
+	
 	public BoardShow(ClientThread client, String title) {
 		super(title);
 		setLayout(new BorderLayout());
@@ -36,9 +36,6 @@ public class BoardShow extends Frame implements ActionListener{
 		// 대화방에서 사용하는 컴포넌트를 배치한다.
 		Panel southpanel = new Panel();
 		southpanel.setLayout(new FlowLayout());
-		dr_btRevise = new Button("수정하기");
-		dr_btRevise.addActionListener(this);
-		southpanel.add(dr_btRevise);
 		dr_btRemove = new Button("삭제하기");
 		dr_btRemove.addActionListener(this);
 		southpanel.add(dr_btRemove);
@@ -63,8 +60,11 @@ public class BoardShow extends Frame implements ActionListener{
 		dr_tfTitle = new TextField(41);
 		dr_tfTitle.setEditable(false);
 		northpanel.add(dr_tfTitle);
-		Time = new Label("작성시간 : "+boardtime);
+		Time = new Label("작성시간");
+		boardtime = new TextField();
+		boardtime.setEditable(false);
 		northpanel.add(Time);
+		northpanel.add(boardtime);
 		
 		
 		Password = new Label("비밀번호");
@@ -95,10 +95,9 @@ public class BoardShow extends Frame implements ActionListener{
 	// 화면지우기, 로그아웃 이벤트를 처리한다.
 	public void actionPerformed(ActionEvent ae) {
 		Button b = (Button) ae.getSource();
-		if (b.getLabel().equals("수정하기")) {
-			//채워야함
-		}else if(b.getLabel().equals("삭제하기")) {
-			//채워야함
+		if(b.getLabel().equals("삭제하기")) {
+			dr_thread.requestremoveBoard(dr_tfPassword.getText(), b_no);
+			
 		}else if(b.getLabel().equals("글쓴이에게 쪽지하기")) {
 			//채워야함
 		}
@@ -106,7 +105,7 @@ public class BoardShow extends Frame implements ActionListener{
 	public void setTextArea(String title, String data,String date) {
 		dr_tfTitle.setText(title);
 		dr_taContents.setText(data);
-		boardtime=date;
+		boardtime.setText(date);
 	}
 
 }
